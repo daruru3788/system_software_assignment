@@ -72,3 +72,37 @@ line_parser_rtn line_parse(string line) {
 
     return {label, instruction, operands};
 }
+
+operands_parser_rtn operands_parse(string operands) {
+    int i = 0;
+    vector<string> result;
+    set<char> escape_char = {'\\', '\'', '\"'};
+    if (!operands.compare("")) return {{}, "", true};
+    while (i < operands.size()) {
+        string operand = "";
+        bool start = false;
+        int state = 0;
+        while (i < operands.size()) {
+            char c = operands[i++];
+            if (c == '\"' || c == '\'') {
+                if (!state) state = (c == '\"') ? 1 : 2;
+                else if (state == 1 && c == '\"') state = 0;
+                else if (state == 2 && c == '\'') state = 0;
+            }
+            if (state && c == '\\' && operands.size() > i && escape_char.count(operands[i])) {
+                operand.push_back(c);
+                operand.push_back(operands[i++]);
+                continue;
+            }
+            if (c == ',' && !state) break;
+            if (c != ' ' && c != '\t') start = true;
+            else if (!start) continue;
+            operand.push_back(c);
+        }
+        while (operand.size() && (operand[operand.size() - 1] == ' ' || operand[operand.size() - 1] == '\t')) operand.pop_back();
+        if (!operand.compare("")) return {{""},"Empty operand", false};
+        result.push_back(operand);
+    }
+    if (operands[i - 1] == ',') return {{""},"Empty operand", false};
+    return {result, "", true};
+}

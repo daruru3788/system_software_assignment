@@ -22,12 +22,21 @@ int main(int argc, char* argv[]) {
     while (getline(file, line)) {
         parser_rtn rtn = parser(line);
         if (rtn.is_success) {
-            cout << line_num++ << " " << rtn.result << "\n";
+            cout << line_num << " " << rtn.result << "\n";
             line_parser_rtn line_rtn = line_parse(rtn.result);
-            cout << '[' << line_rtn.label << "] [" << line_rtn.instruction << "] [" << line_rtn.operands << "]\n"; 
+            cout << '[' << line_rtn.label << "] [" << line_rtn.instruction << "] [" << line_rtn.operands << "]\n";
+            operands_parser_rtn operands_rtn = operands_parse(line_rtn.operands);
+            if (!operands_rtn.is_success) {
+                cerr << operands_rtn.err << " line: " << line_num << "\n";
+                return 1; 
+            }
+            cout << "명령어: " << line_rtn.instruction << "\n";
+            cout << "operand 개수: " << operands_rtn.operands.size() << "\n";
+            for (string op : operands_rtn.operands) cout << "[" << op << "]\n";
+            line_num++;
         }
         else {
-            cerr << rtn.err << line_num++ << "\n";
+            cerr << rtn.err << line_num << "\n";
             return 1;
         }
     }
