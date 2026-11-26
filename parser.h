@@ -11,6 +11,14 @@ struct parser_rtn {
     bool is_success;
 };
 
+struct line_parser_rtn {
+    std::string label;
+    std::string instruction;
+    std::string operands;
+};
+
 parser_rtn parser(std::string line);
+
+line_parser_rtn line_parse(std::string clean_line);
 
 #endif
