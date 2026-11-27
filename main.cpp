@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include "./parser.h"
+#include "./operand.h"
 
 using namespace std;
 
