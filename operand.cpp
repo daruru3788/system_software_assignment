@@ -88,3 +88,30 @@ integer_parser_rtn parse_integer(string integer_str) {
     }
     return {is_minus ? (int64_t)(0 - num) : (int64_t)num, "", true};
 }
+
+integer_parser_rtn parse_integer_char(string integer_str) {
+    if ((integer_str.size() < 3 || !(integer_str.front() == '\'' && integer_str.back() == '\''))) return {-1, "Invalid char value", false};
+    set<char> escape_char{'\\', 'n', 'r', 't', 'b', 'f', '\'', '\"', '0'};
+    integer_str = integer_str.substr(1, integer_str.size() - 2);
+    if (integer_str.size() == 2 && !(integer_str[0] == '\\' && escape_char.count(integer_str[1]))) return {-1, "Invalid char value", false};
+    if (integer_str.size() != 1 && integer_str.size() != 2) return {-1, "Invalid char value", false};
+
+    char c;
+    if (integer_str.size() == 2) {
+        switch (integer_str[1]) {
+            case 'n':  c = '\n'; break;
+            case 't':  c = '\t'; break;
+            case 'r':  c = '\r'; break;
+            case '0':  c = '\0'; break;
+            case 'a':  c = '\a'; break;
+            case 'b':  c = '\b'; break;
+            case 'f':  c = '\f'; break;
+            case 'v':  c = '\v'; break;
+            case '\\': c = '\\'; break;
+            case '\'': c = '\''; break;
+            case '\"': c = '\"'; break;
+        }
+    } else c = integer_str[0];
+
+    return {(int64_t) c, "", true};
+}
