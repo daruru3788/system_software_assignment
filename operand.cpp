@@ -115,3 +115,25 @@ integer_parser_rtn parse_integer_char(string integer_str) {
 
     return {(int64_t) c, "", true};
 }
+
+memory_operand_parser_rtn parse_memory_operand(string operand) {
+    int open_idx = -1;
+    int close_idx = -1;
+    for (int i = 0;i < operand.size();i++) {
+        char c = operand[i];
+        if (c == '(' && open_idx == -1) open_idx = i;
+        else if (c == '(') return {"", -1, "Invalid format memory operand", false};
+        if (c == ')' && i != operand.size() - 1) return {"", -1, "Invalid format memory operand", false};
+        if (c == ')') close_idx = i;
+    }
+    if (open_idx == -1 || close_idx == -1) return {"", -1, "Invalid format memory operand", false};
+
+    string register_str = operand.substr(open_idx + 1, close_idx - open_idx - 1);
+    string offset_str = operand.substr(0, open_idx);
+
+    auto reg = parse_register(register_str);
+    if (!reg.is_success) return {"", -1, reg.err, false};
+
+    if (!offset_str.compare("")) return {"0", reg.register_num, "", true};
+    return {offset_str, reg.register_num, "", true};
+}
