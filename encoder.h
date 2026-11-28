@@ -10,6 +10,8 @@ struct encoder_rtn {
     bool is_success;
 };
 
+bool is_real_instruction(std::string instruct);
+
 encoder_rtn encoder_r(std::string instruct, std::string rd, std::string rs1, std::string rs2);
 
 encoder_rtn encoder_i(std::string instruct, std::string rd, std::string rs1, std::int64_t imm);

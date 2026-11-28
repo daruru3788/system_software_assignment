@@ -59,6 +59,13 @@ static const unordered_map<string, int> CSR_ADDRESS = {
     {"mtval", 0x343}, {"mip", 0x344}, {"mhartid", 0xF14}
 };
 
+bool is_real_instruction(string instruct) {
+    return R_FUNCT.count(instruct) || I_FUNCT.count(instruct) ||
+           S_FUNCT.count(instruct) || B_FUNCT.count(instruct) ||
+           U_OPCODE.count(instruct) || J_OPCODE.count(instruct) ||
+           CSR_FUNCT.count(instruct) || FIXED_CODE.count(instruct);
+}
+
 encoder_rtn encoder_r(string instruct, string rd, string rs1, string rs2) {
     auto rd_rtn = parse_register(rd);
     if (!rd_rtn.is_success) return {0, rd_rtn.err, false};
