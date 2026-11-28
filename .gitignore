@@ -1,0 +1,7 @@
+*.exe
+*.o
+*.gch
+*.bin
+*.lst
+__pycache__/
+

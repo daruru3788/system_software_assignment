@@ -3,6 +3,7 @@
 using namespace std;
 
 register_parser_rtn parse_register(string regiser_str) {
+    if (regiser_str.empty()) return {-1, "Invalid register number", false};
     if (regiser_str[0] == 'x') {
         if (regiser_str.size() == 1) return {-1, "Invalid register number", false};
         int num = 0;
@@ -33,16 +34,18 @@ register_parser_rtn parse_register(string regiser_str) {
 }
 
 integer_parser_rtn parse_integer(string integer_str) {
+    if (integer_str.empty()) return {-1, "Invalid integer number", false};
     bool is_minus = false;
-    if (integer_str[0] == '-') {
-        is_minus = true;
+    if (integer_str[0] == '-' || integer_str[0] == '+') {
+        is_minus = integer_str[0] == '-';
         integer_str = integer_str.substr(1);
     }
+    if (integer_str.empty()) return {-1, "Invalid integer number", false};
     int state;
-    if (integer_str[0] == '0' && integer_str[0 + 1] == 'b') {
+    if (integer_str.size() >= 2 && integer_str[0] == '0' && (integer_str[1] == 'b' || integer_str[1] == 'B')) {
         state = 1;
         integer_str = integer_str.substr(2);
-    } else if (integer_str[0] == '0' && integer_str[0 + 1] == 'x') {
+    } else if (integer_str.size() >= 2 && integer_str[0] == '0' && (integer_str[1] == 'x' || integer_str[1] == 'X')) {
         state = 2;
         integer_str = integer_str.substr(2);
     } else state = 0;
@@ -86,7 +89,8 @@ integer_parser_rtn parse_integer(string integer_str) {
         }
         break;
     }
-    return {is_minus ? (int64_t)(0 - num) : (int64_t)num, "", true};
+    if (is_minus && num == (1ULL << 63)) return {INT64_MIN, "", true};
+    return {is_minus ? -static_cast<int64_t>(num) : static_cast<int64_t>(num), "", true};
 }
 
 integer_parser_rtn parse_integer_char(string integer_str) {
@@ -95,6 +99,7 @@ integer_parser_rtn parse_integer_char(string integer_str) {
     integer_str = integer_str.substr(1, integer_str.size() - 2);
     if (integer_str.size() == 2 && !(integer_str[0] == '\\' && escape_char.count(integer_str[1]))) return {-1, "Invalid char value", false};
     if (integer_str.size() != 1 && integer_str.size() != 2) return {-1, "Invalid char value", false};
+    if (integer_str.size() == 1 && (integer_str[0] == '\\' || integer_str[0] == '\'')) return {-1, "Invalid char value", false};
 
     char c;
     if (integer_str.size() == 2) {
@@ -113,23 +118,24 @@ integer_parser_rtn parse_integer_char(string integer_str) {
         }
     } else c = integer_str[0];
 
-    return {(int64_t) c, "", true};
+    return {static_cast<unsigned char>(c), "", true};
 }
 
 memory_operand_parser_rtn parse_memory_operand(string operand) {
-    int open_idx = -1;
-    int close_idx = -1;
-    for (int i = 0;i < operand.size();i++) {
-        char c = operand[i];
-        if (c == '(' && open_idx == -1) open_idx = i;
-        else if (c == '(') return {"", -1, "Invalid format memory operand", false};
-        if (c == ')' && i != operand.size() - 1) return {"", -1, "Invalid format memory operand", false};
-        if (c == ')') close_idx = i;
-    }
-    if (open_idx == -1 || close_idx == -1) return {"", -1, "Invalid format memory operand", false};
-
-    string register_str = operand.substr(open_idx + 1, close_idx - open_idx - 1);
+    while (!operand.empty() && isspace(static_cast<unsigned char>(operand.back()))) operand.pop_back();
+    if (operand.empty() || operand.back() != ')') return {"", -1, "Invalid format memory operand", false};
+    size_t open_idx = operand.rfind('(');
+    if (open_idx == string::npos) return {"", -1, "Invalid format memory operand", false};
+    string register_str = operand.substr(open_idx + 1, operand.size() - open_idx - 2);
+    while (!register_str.empty() && isspace(static_cast<unsigned char>(register_str.back()))) register_str.pop_back();
+    size_t start = 0;
+    while (start < register_str.size() && isspace(static_cast<unsigned char>(register_str[start]))) start++;
+    register_str = register_str.substr(start);
     string offset_str = operand.substr(0, open_idx);
+    while (!offset_str.empty() && isspace(static_cast<unsigned char>(offset_str.back()))) offset_str.pop_back();
+    start = 0;
+    while (start < offset_str.size() && isspace(static_cast<unsigned char>(offset_str[start]))) start++;
+    offset_str = offset_str.substr(start);
 
     auto reg = parse_register(register_str);
     if (!reg.is_success) return {"", -1, reg.err, false};

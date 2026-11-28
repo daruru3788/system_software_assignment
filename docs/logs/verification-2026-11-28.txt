@@ -1,0 +1,53 @@
+검증일: 2026-11-28
+이 파일은 개발 대화에서 실제 실행한 출력의 발췌를 보존한 것이다.
+서로 다른 실행의 환경 확인, 자동 검사, 최종 예제 생성 출력을 구분했다.
+CPUlator 실행 결과는 포함하지 않는다.
+
+[환경]
+g++.exe (Rev8, Built by MSYS2 project) 15.2.0
+Python 3.13.5
+
+[검토자의 C++17 빌드]
+-std=c++17 -O2 -Werror=narrowing -Werror=return-type
+컴파일·링크 종료 코드: 0
+
+[독립 임시 수식 검사]
+Expression boundary checks: 2567/2567 passed
+
+[자동 검사: tests/test_assembler.py]
+test_all_real_instruction_formats (__main__.AssemblerTests.test_all_real_instruction_formats) ... ok
+test_default_output_and_listing (__main__.AssemblerTests.test_default_output_and_listing) ... ok
+test_error_preserves_existing_output (__main__.AssemblerTests.test_error_preserves_existing_output) ... ok
+test_expressions_constants_and_memory (__main__.AssemblerTests.test_expressions_constants_and_memory) ... ok
+test_invalid_inputs_leave_no_binary (__main__.AssemblerTests.test_invalid_inputs_leave_no_binary) ... ok
+test_known_machine_words (__main__.AssemblerTests.test_known_machine_words) ... ok
+test_la_uses_first_instruction_pc (__main__.AssemblerTests.test_la_uses_first_instruction_pc) ... ok
+test_label_on_section_switch (__main__.AssemblerTests.test_label_on_section_switch) ... ok
+test_li_boundaries (__main__.AssemblerTests.test_li_boundaries) ... ok
+test_li_forward_expression_does_not_change_layout (__main__.AssemblerTests.test_li_forward_expression_does_not_change_layout) ... ok
+test_original_examples (__main__.AssemblerTests.test_original_examples) ... ok
+test_output_cannot_overwrite_input (__main__.AssemblerTests.test_output_cannot_overwrite_input) ... ok
+test_pseudo_expansion_matches_real_instructions (__main__.AssemblerTests.test_pseudo_expansion_matches_real_instructions) ... ok
+test_repeated_sections_and_actual_address_alignment (__main__.AssemblerTests.test_repeated_sections_and_actual_address_alignment) ... ok
+test_sections_data_and_bss_symbols (__main__.AssemblerTests.test_sections_data_and_bss_symbols) ... ok
+test_string_escapes_and_comment_characters (__main__.AssemblerTests.test_string_escapes_and_comment_characters) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 9.639s
+
+OK
+
+[최종 Windows 빌드: .\build.cmd]
+Built assembler.exe
+
+[최종 원본 예제 생성]
+Wrote 716 bytes to example1.bin
+Wrote 796 bytes to example2.bin
+Wrote 884 bytes to example3.bin
+Wrote 2380 bytes to example4.bin
+
+[문서 정리 시 원본 파일 확인]
+asm_example1.s identical=True
+asm_example2.s identical=True
+asm_example3.s identical=True
+asm_example4.s identical=True

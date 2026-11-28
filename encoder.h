@@ -11,6 +11,7 @@ struct encoder_rtn {
 };
 
 bool is_real_instruction(std::string instruct);
+std::string instruction_format(std::string instruct);
 
 encoder_rtn encoder_r(std::string instruct, std::string rd, std::string rs1, std::string rs2);
 

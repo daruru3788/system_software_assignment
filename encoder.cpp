@@ -66,6 +66,18 @@ bool is_real_instruction(string instruct) {
            CSR_FUNCT.count(instruct) || FIXED_CODE.count(instruct);
 }
 
+string instruction_format(string instruct) {
+    if (R_FUNCT.count(instruct)) return "R";
+    if (I_FUNCT.count(instruct)) return "I";
+    if (S_FUNCT.count(instruct)) return "S";
+    if (B_FUNCT.count(instruct)) return "B";
+    if (U_OPCODE.count(instruct)) return "U";
+    if (J_OPCODE.count(instruct)) return "J";
+    if (CSR_FUNCT.count(instruct)) return "CSR";
+    if (FIXED_CODE.count(instruct)) return "FIXED";
+    return "";
+}
+
 encoder_rtn encoder_r(string instruct, string rd, string rs1, string rs2) {
     auto rd_rtn = parse_register(rd);
     if (!rd_rtn.is_success) return {0, rd_rtn.err, false};
