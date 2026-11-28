@@ -1,5 +1,6 @@
 #include "./assembler.h"
 #include "./encoder.h"
+#include <climits>
 
 using namespace std;
 
@@ -120,5 +121,83 @@ inst_size_rtn instruction_size(source_line line, constants_rtn constants) {
 }
 
 inst_size_rtn directive_size(source_line line, constants_rtn constants, std::uint32_t current_address) {
-    
+    if (line.instruction == ".byte" || line.instruction == ".half" || line.instruction == ".word") {
+        if (line.operands.empty()) return {0, "Invalid operands number", false};
+        int unit_size = 1;
+        if (line.instruction == ".half") unit_size = 2;
+        else if (line.instruction == ".word") unit_size = 4;
+
+        if (line.operands.size() > static_cast<size_t>(INT_MAX / unit_size)) return {0, "Directive size out of range", false};
+        int byte_size = static_cast<int>(line.operands.size()) * unit_size;
+        return {byte_size, "", true};
+    } else if (line.instruction == ".space") {
+        if (line.operands.size() != 1) return {0, "Invalid operands number", false};
+        string v = line.operands[0];
+        if (v.empty()) return {0, "Empty operand", false};
+        int64_t integer_v;
+        if (v[0] == '\'') {
+            auto rtn = parse_integer_char(v);
+            if (!rtn.is_success) return {0, rtn.err, false};
+            integer_v = rtn.integer;
+        } else if ((v[0] >= '0' && v[0] <= '9') || v[0] == '-') {
+            auto rtn = parse_integer(v);
+            if (!rtn.is_success) return {0, rtn.err, false};
+            integer_v = rtn.integer;
+        } else {
+            auto const_map = constants.constants;
+            auto num = const_map.find(v);
+            if (num == const_map.end()) return {0, "Couldn't find constant", false};
+            integer_v = num->second;
+        }
+
+        if (integer_v < 0) return {0, "Invalid value", false};
+        if (integer_v > INT_MAX) return {0, "Directive size out of range", false};
+        return {static_cast<int>(integer_v), "", true};
+    } else if (line.instruction == ".align") {
+        if (line.operands.size() != 1) return {0, "Invalid operands number", false};
+        string v = line.operands[0];
+        if (v.empty()) return {0, "Empty operand", false};
+        int64_t integer_v;
+        if ((v[0] >= '0' && v[0] <= '9') || v[0] == '-') {
+            auto rtn = parse_integer(v);
+            if (!rtn.is_success) return {0, rtn.err, false};
+            integer_v = rtn.integer;
+        } else {
+            auto const_map = constants.constants;
+            auto num = const_map.find(v);
+            if (num == const_map.end()) return {0, "Couldn't find constant", false};
+            integer_v = num->second;
+        }
+        if (!(integer_v >= 0 && integer_v < 64)) return {0, "Invalid k", false};
+        uint64_t alignment = 1ULL << integer_v;
+        uint64_t remainder = current_address % alignment;
+
+        uint64_t padding = (remainder == 0) ? 0 : alignment - remainder;
+        if (padding > INT_MAX) return {0, "Directive size out of range", false};
+        return {static_cast<int>(padding), "", true};
+    } else if (line.instruction == ".ascii" || line.instruction == ".asciz") {
+        if (line.operands.size() != 1) return {0, "Invalid operands number", false};
+        string op = line.operands[0];
+        if (op.size() < 2 || op.front() != '"' || op.back() != '"') return {0, "Invalid string literal", false};
+        int cnt = (line.instruction == ".asciz") ? 1 : 0;
+        set<char> escape_char{'\\', 'n', 'r', 't', 'b', 'f', '\'', '\"', '0'};
+        for (size_t i = 1;i < op.size() - 1;i++) {
+            char c = op[i];
+            if (c == '"') return {0, "Invalid string literal", false};
+            if (c == '\\') {
+                if (i + 1 >= op.size() - 1 || !escape_char.count(op[i + 1])) return {0, "Invalid escape sequence", false};
+                i++;
+            }
+            if (cnt == INT_MAX) return {0, "Directive size out of range", false};
+            cnt++;
+        }
+        return {cnt, "", true};
+    }
+
+    static const set<string> ZERO_SIZE_DIRECTIVES = {
+        ".text", ".data", ".bss", ".equ", ".globl", ".global"
+    };
+    if (ZERO_SIZE_DIRECTIVES.count(line.instruction)) return {0, "", true};
+
+    return {0, "Invalid directive: " + line.instruction, false};
 }
